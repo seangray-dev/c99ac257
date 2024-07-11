@@ -54,7 +54,7 @@ export default function Inbox() {
       setIsOpen(true);
     },
   });
-  
+
   if (isLoading) return <Loading />;
   if (error) return <ErrorCalls />;
 
@@ -88,7 +88,7 @@ export default function Inbox() {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <Button
                   disabled={isPending}
-                  className='bg-destructive text-destructive-foreground hover:bg-destructive/90 w-24'
+                  className='bg-destructive text-destructive-foreground hover:bg-destructive/90 md:w-24'
                   onClick={() =>
                     server_updateMultipleCalls({
                       callIds: activeCallIds,
