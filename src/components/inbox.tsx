@@ -36,12 +36,6 @@ export default function Inbox() {
     queryFn: fetchCalls,
   });
 
-  if (isLoading) return <Loading />;
-  if (error) return <ErrorCalls />;
-
-  const activeCalls = calls?.filter((call: Call) => !call.is_archived) || [];
-  const activeCallIds = activeCalls.map((call: Call) => call.id);
-
   const { mutate: server_updateMultipleCalls, isPending } = useMutation({
     mutationFn: ({
       callIds,
@@ -60,6 +54,13 @@ export default function Inbox() {
       setIsOpen(true);
     },
   });
+  
+  if (isLoading) return <Loading />;
+  if (error) return <ErrorCalls />;
+
+  const activeCalls = calls?.filter((call: Call) => !call.is_archived) || [];
+  const activeCallIds = activeCalls.map((call: Call) => call.id);
+
 
   return (
     <div className='flex-1 flex flex-col'>
