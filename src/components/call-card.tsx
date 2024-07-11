@@ -1,4 +1,6 @@
+import { animationVariants } from '@/lib/animations';
 import { formatDate } from '@/lib/utils';
+import { motion } from 'framer-motion';
 import {
   PhoneForwarded,
   PhoneIncomingIcon,
@@ -35,23 +37,32 @@ export default function CallCard({ call }: { call: any }) {
   };
 
   return (
-    <Card key={call.id} className='p-4'>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-4'>
-          {getPhoneIcon()}
-          <div className='text-lg font-medium'>
-            {call.direction === 'inbound' ? (
-              <p>{call.from}</p>
-            ) : (
-              <p>{call.to}</p>
-            )}
+    <motion.div
+      variants={animationVariants}
+      initial='initial'
+      animate='animate'
+      exit='exit'
+      layout>
+      <Card key={call.id} className='p-4'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-4'>
+            {getPhoneIcon()}
+            <div className='text-lg font-medium'>
+              {call.direction === 'inbound' ? (
+                <p>{call.from}</p>
+              ) : (
+                <p>{call.to}</p>
+              )}
+            </div>
+          </div>
+          <div className='text-right flex items-center gap-2'>
+            <p className='text-muted-foreground'>
+              {formatDate(call.created_at)}
+            </p>
+            <CallDetails call={call} />
           </div>
         </div>
-        <div className='text-right flex items-center gap-2'>
-          <p className='text-muted-foreground'>{formatDate(call.created_at)}</p>
-          <CallDetails call={call} />
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 }
