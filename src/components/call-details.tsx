@@ -27,7 +27,7 @@ import { Button } from './ui/button';
 
 export default function CallDetails({ call }: { call: Call }) {
   const queryClient = useQueryClient();
-  const [isOpen, setIsOpen] = useState(false);  
+  const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const { mutate: server_updateCall, isPending } = useMutation({

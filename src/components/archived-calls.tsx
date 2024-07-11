@@ -2,7 +2,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,10 +11,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { animationVariants } from '@/lib/animations';
-import { fetchCalls } from '@/lib/api';
+import { fetchCalls, toggleArchiveAllCalls } from '@/lib/api';
 import { Call } from '@/lib/types';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Loader2Icon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import CallCard from './call-card';
 import { ErrorCalls } from './error-calls';
 import Loading from './loading';
@@ -23,6 +25,8 @@ import NoCalls from './no-calls';
 import { Button } from './ui/button';
 
 export default function Inbox() {
+  const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
   const {
     data: calls,
     error,
@@ -36,6 +40,26 @@ export default function Inbox() {
   if (error) return <ErrorCalls />;
 
   const archivedCalls = calls?.filter((call: Call) => call.is_archived) || [];
+  const archivedCallIds = archivedCalls.map((call: Call) => call.id);
+
+  const { mutate: server_updateMultipleCalls, isPending } = useMutation({
+    mutationFn: ({
+      callIds,
+      isArchived,
+    }: {
+      callIds: string[];
+      isArchived: boolean;
+    }) => toggleArchiveAllCalls({ callIds, isArchived }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calls'] });
+      toast.success('Calls unarchived successfully');
+      setIsOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message);
+      setIsOpen(true);
+    },
+  });
 
   return (
     <div className='flex-1 flex flex-col'>
@@ -46,7 +70,7 @@ export default function Inbox() {
         exit='exit'
         layout>
         {archivedCalls.length > 0 && (
-          <AlertDialog>
+          <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
             <AlertDialogTrigger asChild>
               <Button variant='outline' className='w-full mb-6'>
                 Unarchive All
@@ -56,14 +80,26 @@ export default function Inbox() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will move all calls to the archived tab.
+                  This will move all calls to the inbox tab.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
-                  Archive All
-                </AlertDialogAction>
+                <Button
+                  disabled={isPending}
+                  className='bg-destructive text-destructive-foreground hover:bg-destructive/90 w-24'
+                  onClick={() =>
+                    server_updateMultipleCalls({
+                      callIds: archivedCallIds,
+                      isArchived: false,
+                    })
+                  }>
+                  {isPending ? (
+                    <Loader2Icon className='animate-spin' />
+                  ) : (
+                    'Archive All'
+                  )}
+                </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

@@ -13,6 +13,7 @@ export const fetchCalls = async () => {
   }
 };
 
+// ? Unsused...consider removing
 export const getCallDetails = async (callId: number) => {
   try {
     const response = await fetch(`${BASE_URL}/activities/${callId}`);
@@ -47,14 +48,8 @@ export const updateCall = async ({
       const text = await res.text();
       throw new Error(`Error updating call ID ${callId}: ${text}`);
     }
-
-    const contentType = res.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return res.json();
-    } else {
-      const text = await res.text();
-      return { message: text };
-    }
+    const text = await res.text();
+    return { message: text };
   } catch (error) {
     console.error(`Error updating call ID ${callId}:`, error);
     throw error;
@@ -70,15 +65,39 @@ export const resetCalls = async () => {
       const text = await response.text();
       throw new Error(text);
     }
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return response.json();
-    } else {
-      const text = await response.text();
-      return { message: text };
-    }
+
+    const text = await response.text();
+    return { message: text };
   } catch (error) {
     console.error('Error resetting calls:', error);
+    throw error;
+  }
+};
+
+export const toggleArchiveAllCalls = async ({
+  callIds,
+  isArchived,
+}: {
+  callIds: string[];
+  isArchived?: boolean;
+}) => {
+  const updateCallAsync = async (callId: string) => {
+    try {
+      await updateCall({ callId, isArchived });
+      console.log(`Call ID ${callId} updated successfully.`);
+    } catch (error) {
+      console.error(`Error updating Call ID ${callId}:`, error);
+      throw error;
+    }
+  };
+
+  const updatePromises = callIds.map(updateCallAsync);
+
+  try {
+    const results = await Promise.allSettled(updatePromises);
+    return results;
+  } catch (error) {
+    console.error('Error updating calls:', error);
     throw error;
   }
 };
